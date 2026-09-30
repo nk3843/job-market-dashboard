@@ -26,7 +26,8 @@ job boards ─► collector (scheduled, weekdays) ─► data/snapshots/*.csv.gz
                          data/marts/*.parquet ─► app.py (Streamlit + DuckDB + Altair)
 ```
 
-- **Collection:** a scheduled job checks each company's public job board and saves every open matching role.
+- **Collection:** [job-board-watcher](https://github.com/nk3843/job-board-watcher) checks each company's public job board
+  on a weekday schedule and saves every open matching role.
 - **Transformation ([dbt](https://www.getdbt.com/), `transform/`):**
 
   ```
