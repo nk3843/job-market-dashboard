@@ -1,0 +1,23 @@
+version: 2
+
+seeds:
+  - name: us_states
+    description: The 50 states plus DC.
+    columns:
+      - name: code
+        data_tests: [unique, not_null]
+      - name: name
+        data_tests: [unique, not_null]
+  - name: us_cities
+    description: Well-known cities that often appear without a state, e.g. "San Francisco".
+    columns:
+      - name: city
+        data_tests: [unique]
+      - name: state
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('us_states')
+                field: code
+  - name: non_us_places
+    description: Places outside the US that the collector's US filter lets through.

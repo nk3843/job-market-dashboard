@@ -1,0 +1,8 @@
+# Where dbt builds: a local DuckDB file (ignored by git). Run dbt from this folder: cd transform && dbt build
+job_market:
+  target: dev
+  outputs:
+    dev:
+      type: duckdb
+      path: ../build/jobs.duckdb
+      threads: 4

@@ -28,6 +28,25 @@ data/snapshots/*.csv.gz ──► sql/models/stg_jobs.sql ──► app.py (Stre
   and non-US postings. `sql/03_locations.sql` checks the result (84.6% of postings get a state).
 - **Dashboard:** DuckDB runs SQL directly on the gzipped CSVs; there is no database server.
 
+## Transformations (dbt)
+
+The cleaning also lives in a [dbt](https://www.getdbt.com/) project in `transform/`, with tests that run on every build:
+
+```
+source: raw.snapshots ─► stg_snapshots ─► int_location_states ─┐
+seeds: us_states, us_cities, non_us_places ────────────────────┴► fct_open_roles ─► agg_daily_roles
+```
+
+- **30 tests**: one row per job per day, no rows lost or duplicated by joins, every state is a real state code,
+  lookup tables have no duplicates, and a warning if fewer than 90% of placed US postings resolve to a state.
+- **State matching runs once per distinct location** (905 of them), not once per job per day, so builds stay fast
+  as snapshots accumulate (17 s → 2 s on the first day already).
+
+```bash
+.venv/bin/pip install -r requirements-dbt.txt
+cd transform && ../.venv/bin/dbt build --profiles-dir .
+```
+
 To explore with SQL: `.venv/bin/python run_sql.py sql/models/stg_jobs.sql sql/03_locations.sql`
 
 ## Data

@@ -1,0 +1,28 @@
+version: 2
+
+models:
+  - name: fct_open_roles
+    description: One row per open job per snapshot day. The table the dashboard reads.
+    columns:
+      - name: snapshot_job_id
+        data_tests: [unique, not_null]
+      - name: is_us
+        description: FALSE when the only place named is outside the US.
+        data_tests: [not_null]
+      - name: state
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('us_states')
+                field: code
+
+  - name: agg_daily_roles
+    description: Open US roles per day and role type. A job with two role types counts in both.
+    columns:
+      - name: track
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ["Backend", "AI/ML", "Data"]
+      - name: roles
+        data_tests: [not_null]

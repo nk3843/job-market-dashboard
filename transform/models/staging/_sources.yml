@@ -1,0 +1,10 @@
+version: 2
+
+sources:
+  - name: raw
+    description: Daily snapshots published by the collector, one gzipped CSV per weekday.
+    tables:
+      - name: snapshots
+        config:
+          meta:
+            external_location: "read_csv('../data/snapshots/*.csv.gz', header = true)"

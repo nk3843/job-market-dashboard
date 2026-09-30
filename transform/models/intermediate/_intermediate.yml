@@ -1,0 +1,15 @@
+version: 2
+
+models:
+  - name: int_location_states
+    description: One row per distinct location text, with its US state and a non-US flag.
+    columns:
+      - name: location_clean
+        data_tests: [unique]
+      - name: state
+        description: Two-letter code of the first US state, state code, or known city named; NULL if none.
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('us_states')
+                field: code

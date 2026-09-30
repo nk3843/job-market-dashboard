@@ -1,0 +1,20 @@
+version: 2
+
+models:
+  - name: stg_snapshots
+    description: One row per open job per snapshot day, with tidied location text.
+    columns:
+      - name: snapshot_job_id
+        description: The grain (snapshot day + job key). Each job appears once per day.
+        data_tests: [unique, not_null]
+      - name: snapshot_date
+        data_tests: [not_null]
+      - name: company
+        data_tests: [not_null]
+      - name: title
+        data_tests: [not_null]
+      - name: url
+        data_tests: [not_null]
+      - name: tracks
+        description: Role types as a comma-separated list, e.g. "Backend, AI/ML".
+        data_tests: [not_null]

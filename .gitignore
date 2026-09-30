@@ -6,3 +6,9 @@ __pycache__/
 *.duckdb.wal
 .streamlit/secrets.toml
 .env
+
+# dbt build output
+build/
+transform/logs/
+transform/target/
+transform/.user.yml
