@@ -1,6 +1,6 @@
 """Run the statements in one or more .sql files, in order, on one DuckDB connection, printing any results.
 
-Usage: python run_sql.py sql/models/stg_jobs.sql sql/03_locations.sql
+Usage: python run_sql.py sql/03_locations.sql
 """
 import sys
 

@@ -17,37 +17,40 @@ python -m venv .venv && .venv/bin/pip install -r requirements.txt
 ## How it works
 
 ```
-data/snapshots/*.csv.gz ──► sql/models/stg_jobs.sql ──► app.py (Streamlit + Altair)
-  one file per weekday       cleaned: state, remote,      who is hiring, where,
-                             non-US flag, role flags      role types over time, postings
+job boards ─► collector (scheduled, weekdays) ─► data/snapshots/*.csv.gz
+                                                        │  push triggers GitHub Actions
+                                                        ▼
+                         dbt build: models + 30 tests (transform/)
+                            │ tests fail → stop; the dashboard keeps the last good data
+                            ▼ tests pass
+                         data/marts/*.parquet ─► app.py (Streamlit + DuckDB + Altair)
 ```
 
 - **Collection:** a scheduled job checks each company's public job board and saves every open matching role.
-- **Cleaning:** `stg_jobs` turns messy location text ("US, CA, Santa Clara", "San Diego, CALIFORNIA",
-  "3 Locations (primary: …)") into a US state using lookup tables in `data/reference/`, and flags remote
-  and non-US postings. `sql/03_locations.sql` checks the result (84.6% of postings get a state).
-- **Dashboard:** DuckDB runs SQL directly on the gzipped CSVs; there is no database server.
+- **Transformation ([dbt](https://www.getdbt.com/), `transform/`):**
 
-## Transformations (dbt)
+  ```
+  source: raw.snapshots ─► stg_snapshots ─► int_location_states ─┐
+  seeds: us_states, us_cities, non_us_places ────────────────────┴► fct_open_roles ─► agg_daily_roles
+  ```
 
-The cleaning also lives in a [dbt](https://www.getdbt.com/) project in `transform/`, with tests that run on every build:
+  Messy location text ("US, CA, Santa Clara", "San Diego, CALIFORNIA", "3 Locations (primary: …)") becomes a
+  US state via lookup tables in `data/reference/` (84.6% of postings), with remote and non-US flags. Matching runs
+  once per distinct location (905), not once per job per day, so builds stay fast as snapshots accumulate.
+- **Data tests (30):** one row per job per day, no rows lost or duplicated by joins, every state is a real state
+  code, lookup tables have no duplicates, and a warning if fewer than 90% of placed US postings get a state.
+  They run on every new snapshot in [`.github/workflows/build.yml`](.github/workflows/build.yml); only data that
+  passes is published to `data/marts/` (one Parquet file per day).
+- **Dashboard:** DuckDB reads the Parquet marts in-process; there is no database server.
 
-```
-source: raw.snapshots ─► stg_snapshots ─► int_location_states ─┐
-seeds: us_states, us_cities, non_us_places ────────────────────┴► fct_open_roles ─► agg_daily_roles
-```
-
-- **30 tests**: one row per job per day, no rows lost or duplicated by joins, every state is a real state code,
-  lookup tables have no duplicates, and a warning if fewer than 90% of placed US postings resolve to a state.
-- **State matching runs once per distinct location** (905 of them), not once per job per day, so builds stay fast
-  as snapshots accumulate (17 s → 2 s on the first day already).
+Build locally:
 
 ```bash
 .venv/bin/pip install -r requirements-dbt.txt
-cd transform && ../.venv/bin/dbt build --profiles-dir .
+cd transform && ../.venv/bin/dbt build --profiles-dir . && ../.venv/bin/python export_marts.py
 ```
 
-To explore with SQL: `.venv/bin/python run_sql.py sql/models/stg_jobs.sql sql/03_locations.sql`
+To explore with SQL: `.venv/bin/python run_sql.py sql/03_locations.sql`
 
 ## Data
 

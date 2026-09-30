@@ -1,8 +1,8 @@
--- Check the location cleaning in stg_jobs. Run after the model:
---   python run_sql.py sql/models/stg_jobs.sql sql/03_locations.sql
+-- Check the location cleaning in the fct_open_roles mart (built by dbt in transform/). Run:
+--   python run_sql.py sql/03_locations.sql
 
--- Still one row per job? (should print the same two numbers)
-SELECT (SELECT count(*) FROM raw_jobs) AS raw_rows, (SELECT count(*) FROM stg_jobs) AS stg_rows;
+CREATE OR REPLACE VIEW fct_open_roles AS
+SELECT * FROM read_parquet('data/marts/fct_open_roles/*/*.parquet', hive_partitioning = true);
 
 -- How much got a state?
 SELECT CASE WHEN NOT is_us THEN 'not US'
@@ -11,13 +11,13 @@ SELECT CASE WHEN NOT is_us THEN 'not US'
             WHEN is_multi THEN 'multiple, no state'
             ELSE 'no state' END AS result,
        count(*) AS roles, round(100.0 * count(*) / sum(count(*)) OVER (), 1) AS pct
-FROM stg_jobs GROUP BY result ORDER BY roles DESC;
+FROM fct_open_roles GROUP BY result ORDER BY roles DESC;
 
 -- Top states
-SELECT state, count(*) AS roles FROM stg_jobs WHERE state IS NOT NULL
+SELECT state, count(*) AS roles FROM fct_open_roles WHERE state IS NOT NULL
 GROUP BY state ORDER BY roles DESC LIMIT 12;
 
 -- Spot-check: what is still unmatched?
-SELECT location, count(*) AS n FROM stg_jobs
+SELECT location, count(*) AS n FROM fct_open_roles
 WHERE state IS NULL AND is_us AND NOT is_remote AND NOT is_multi
 GROUP BY location ORDER BY n DESC LIMIT 15;

@@ -17,7 +17,7 @@ st.set_page_config(page_title="Job Market Dashboard", layout="wide")
 DARK = st.context.theme.type == "dark"
 BLUE = "#3987e5" if DARK else "#2a78d6"   # single-series bars
 LABEL = "#c3c2b7" if DARK else "#52514e"  # text beside marks uses text colors, never the series color
-TRACKS = {  # label -> (stg_jobs flag column, color); a track keeps its color in every chart
+TRACKS = {  # label -> (fct_open_roles flag column, color); a track keeps its color in every chart
     "Backend": ("is_backend", "#3987e5" if DARK else "#2a78d6"),
     "AI/ML": ("is_ai_ml", "#d95926" if DARK else "#eb6834"),
     "Data": ("is_data", "#199e70" if DARK else "#1baf7a"),
@@ -26,13 +26,10 @@ TRACKS = {  # label -> (stg_jobs flag column, color); a track keeps its color in
 
 @st.cache_resource
 def connect() -> duckdb.DuckDBPyConnection:
-    """Build stg_jobs once per server and keep it in memory as a table."""
+    """Load the tested fct_open_roles mart (built by dbt in transform/) into memory once per server."""
     con = duckdb.connect()
-    con.execute(f"SET file_search_path = '{ROOT}'")   # so the model's relative paths work from any folder
-    model = (ROOT / "sql" / "models" / "stg_jobs.sql").read_text(encoding="utf-8")
-    for statement in con.extract_statements(model):
-        con.execute(statement.query)
-    con.execute("CREATE TABLE jobs AS SELECT * FROM stg_jobs")
+    marts = ROOT / "data" / "marts" / "fct_open_roles" / "*" / "*.parquet"
+    con.execute(f"CREATE TABLE jobs AS SELECT * FROM read_parquet('{marts}', hive_partitioning = true)")
     return con
 
 
