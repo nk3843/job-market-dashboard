@@ -8,7 +8,6 @@ __pycache__/
 .env
 
 # dbt build output
-build/
 transform/logs/
 transform/target/
 transform/.user.yml

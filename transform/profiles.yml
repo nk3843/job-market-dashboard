@@ -4,5 +4,5 @@ job_market:
   outputs:
     dev:
       type: duckdb
-      path: ../build/jobs.duckdb
+      path: jobs.duckdb   # created in transform/ (ignored by git)
       threads: 4

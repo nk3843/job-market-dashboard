@@ -12,7 +12,7 @@ import tempfile
 
 import duckdb
 
-DB = "../build/jobs.duckdb"
+DB = "jobs.duckdb"
 OUT = "../data/marts"
 
 
