@@ -3,7 +3,9 @@
 Tracks open backend, data, and AI/ML engineering roles at ~220 tech companies, one snapshot per weekday,
 and turns them into hiring trends: who is hiring, for what, and where.
 
-*Work in progress.*
+**Live demo: [nk-job-market.streamlit.app](https://nk-job-market.streamlit.app/)** (it may take ~30 seconds to wake up)
+
+![Dashboard screenshot](docs/screenshot.png)
 
 ## Run it
 
