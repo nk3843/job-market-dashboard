@@ -1,10 +1,14 @@
-"""Run each statement in a .sql file with DuckDB and print the results.  Usage: python run_sql.py sql/01_explore.sql"""
+"""Run the statements in one or more .sql files, in order, on one DuckDB connection, printing any results.
+
+Usage: python run_sql.py sql/models/stg_jobs.sql sql/03_locations.sql
+"""
 import sys
 
 import duckdb
 
 con = duckdb.connect()
-for statement in con.extract_statements(open(sys.argv[1], encoding="utf-8").read()):
-    result = con.sql(statement.query)
-    if result is not None:
-        result.show(max_width=140)
+for path in sys.argv[1:]:
+    for statement in con.extract_statements(open(path, encoding="utf-8").read()):
+        result = con.sql(statement.query)
+        if result is not None:
+            result.show(max_width=140)
