@@ -1,0 +1,9 @@
+# Separate light and dark themes keep Streamlit's automatic light/dark switching (a single [theme] turns it off).
+[theme.light]
+primaryColor = "#2a78d6"
+
+[theme.dark]
+primaryColor = "#3987e5"
+
+[browser]
+gatherUsageStats = false

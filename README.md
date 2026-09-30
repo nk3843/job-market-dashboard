@@ -5,6 +5,29 @@ and turns them into hiring trends: who is hiring, for what, and where.
 
 *Work in progress.*
 
+## Run it
+
+```bash
+python -m venv .venv && .venv/bin/pip install -r requirements.txt
+.venv/bin/streamlit run app.py
+```
+
+## How it works
+
+```
+data/snapshots/*.csv.gz ──► sql/models/stg_jobs.sql ──► app.py (Streamlit + Altair)
+  one file per weekday       cleaned: state, remote,      who is hiring, where,
+                             non-US flag, role flags      role types over time, postings
+```
+
+- **Collection:** a scheduled job checks each company's public job board and saves every open matching role.
+- **Cleaning:** `stg_jobs` turns messy location text ("US, CA, Santa Clara", "San Diego, CALIFORNIA",
+  "3 Locations (primary: …)") into a US state using lookup tables in `data/reference/`, and flags remote
+  and non-US postings. `sql/03_locations.sql` checks the result (84.6% of postings get a state).
+- **Dashboard:** DuckDB runs SQL directly on the gzipped CSVs; there is no database server.
+
+To explore with SQL: `.venv/bin/python run_sql.py sql/models/stg_jobs.sql sql/03_locations.sql`
+
 ## Data
 
 `data/snapshots/YYYY-MM-DD.csv.gz` — every open matching role on that day, one row per posting:
